@@ -1,9 +1,11 @@
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, print};
 
 fn main() -> Result<(), std::io::Error> {
     // comment post solution - much easier solution to treat as binary ROW[XXXXXXX]COL[XXX] which in binary
     // translates directly to seat id (because ROW starts at pos 4 [_000], has to be multiplied by 8)
     let input = fs::read_to_string("input.txt")?;
+    p2_fast(&input);
+    return Ok(());
     let seats: Vec<(usize, usize)> = input.lines().map(|x| get_seat(x).unwrap()).collect();
     let max_seat = seats.iter().max_by_key(|(row, col)| (row * 8) + col).unwrap();
     let max_id = (max_seat.0 * 8) + max_seat.1;
@@ -60,4 +62,27 @@ fn get_seat_pos(moves: &[char], lower: usize, upper: usize) -> Option<usize> {
     }
 
     Some(lower)
+}
+
+fn p2_fast(input: &String) {
+    let mut transformed: Vec<u64> = input.lines().map(|x| get_id_from_str(x).unwrap()).collect();
+    transformed.sort();
+
+    for (idx, id) in transformed.iter().enumerate() {
+        if let Some(next_id) = transformed.get(idx + 1) {
+            if id + 2 == *next_id { // If there is next element and next element id is +2, we have a gap
+                let s: String = format!("{:10b}", id+1).chars().collect();
+
+                println!("Might be {}/{}", s, id+1);
+            }
+        }
+    }
+}
+
+fn get_id_from_str(input: &str) -> Option<u64> {
+    // Remap to binary string
+    let transformed: String = input.chars().map(|c| if c == 'B' || c == 'R' { '1' } else { '0' }).collect();
+
+    // Convert to u64
+    Some(u64::from_str_radix(&transformed, 2).unwrap())
 }
